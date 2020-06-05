@@ -24,31 +24,15 @@ VCC -> Board Pin 17 (3.3v)
 GND -> Board Pin 20
 """
 
-from adafruit_servokit import ServoKit
 from gpiozero import Motor, PWMOutputDevice
 from time import sleep
 from enum import Enum
 
 
-class ServoCh(Enum):
-    STEERING = 0
-    CAM_PAN = 1
-    CAM_TILT = 2
-
-    TRIGHT_HYDR = 4
-    TLEFT_HYDR = 5
-    BRIGHT_HYDR = 6
-    BLEFT_HYDR = 7
-
 
 class PiCar:
     def __init__(self):
         self.motorDriver = HBridgeMotorDriver(in1=5, in2=6, enable=13)
-        self.servoDiver = ServoDriver(sda=2, scl=3)
-
-    def f(self):
-        pass
-
 
 class HBridgeMotorDriver:
     def __init__(self, in1, in2, enable):
@@ -86,7 +70,7 @@ class HBridgeMotorDriver:
             print("one of the speed is negative")
             return
 
-        if speedTo > speedFrom:
+        if speedTo < speedFrom:
             print("Cant accelerate to a speed less than the start speed, do you want to decelerate instead? ")
             print("ERROR: accelerate Speed From: {} -> Speed To: {}".format(speedFrom, speedTo))
             return
@@ -166,23 +150,13 @@ class HBridgeMotorDriver:
         self.currSpeed = 0.0
 
 
-class ServoDriver:
-    def __init__(self, sda, scl):
-        self.sda = sda
-        self.scl = scl
-        # self.vccPin = 17
-        # self.gndPin = 20
-        self.kit = ServoKit(channels=16)
-
-
-class DistanceSensor:
-    pass
 
 
 if __name__ == "__main__":
+    car = PiCar()
     try:
         while 1:
-            car = PiCar()
             car.motorDriver.accelerate(rate=5,perSec=1,speedFrom=0,speedTo=100)
     except KeyboardInterrupt:
         print("Program Stopped via keyboard interrupt")
+	car.motorDriver.halt()
