@@ -54,7 +54,7 @@ class HBridgeMotorDriver:
     def __init__(self, in1, in2, enable):
         self.in1 = in1
         self.in2 = in2
-        self.enable = enable  # this gpio is pwm
+        #self.enable = enable  # this gpio is pwm
         self.pwmEnable = PWMOutputDevice(enable, frequency=100)
         self.motor = Motor(forward=in1, backward=in2)
         self.pwmEnable.on()
