@@ -86,6 +86,7 @@ class HBridgeMotorDriver:
         if rate > 100:
             rate = 100
 
+        self.forward()
         print("Accelerating at a rate of {} unit/sec".format(rate))
         for currRate in range(int(speedFrom), 101, rate):
             dutyCycle = currRate / 100
