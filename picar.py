@@ -70,11 +70,13 @@ class HBridgeMotorDriver:
 
     def slowStart(self, accelRate: int = 1, perSec: float = 1, speedFrom: float = 0):
         self.accelerate(rate=accelRate, perSec=perSec, speedFrom=speedFrom)
-        self.pwmEnable.value = 0.0
+        self.pwmEnable.value = 1.0
+        self.currSpeed = 100
 
     def slowStop(self, decelRate: int = 1, perSec: float = 1, speedFrom: float = 100):
         self.decelerate(rate=decelRate, perSec=perSec, speedFrom=speedFrom)
         self.pwmEnable.value = 0.0
+        self.currSpeed = 0.0
         # self.pwmEnable.off()
 
     def accelerate(self, rate: int = 1, perSec: float = 1, speedFrom: float = 0, speedTo: float = 100):
@@ -104,9 +106,9 @@ class HBridgeMotorDriver:
         for currRate in range(int(speedFrom), 101, rate):
             dutyCycle = currRate / 100
             self.pwmEnable.value = dutyCycle
-            currSpeed = currRate / perSec
-            print("Current Speed: {} unit/sec".format(currSpeed))
-            if currSpeed >= speedTo:
+            self.currSpeed = currRate / perSec
+            print("Current Speed: {} unit/sec".format(self.currSpeed))
+            if self.currSpeed >= speedTo:
                 print("Accelerating stopped, speed limit of {} unit/sec reached".format(speedTo))
                 break
             sleep(perSec)
@@ -139,25 +141,29 @@ class HBridgeMotorDriver:
             dutyCycle = currRate / 100
             self.pwmEnable.value = dutyCycle
 
-            currSpeed = currRate / perSec
-            print("Current Speed: {} unit/sec".format(currSpeed))
-            if currSpeed <= speedTo:
-                print("Accelerating stopped, speed limit of {} unit/sec reached".format(speedTo))
+            self.currSpeed = currRate / perSec
+            print("Current Speed: {} unit/sec".format(self.currSpeed))
+            if self.currSpeed <= speedTo:
+                print("Decelerating stopped, speed limit of {} unit/sec reached".format(speedTo))
                 break
             sleep(perSec)
+
 
     def forward(self, pwmDutyCycle: float = 1.0):
         self.motor.forward()
         self.pwmEnable.value = pwmDutyCycle
+        self.currSpeed = 100
 
     def backward(self, pwmDutyCycle: float = 1.0):
         # self.motor.backward(pwmDutyCycle)
         self.motor.backward()
         self.pwmEnable.value = pwmDutyCycle
+        self.currSpeed = 100
 
 
     def halt(self):
         self.pwmEnable.off()
+        self.currSpeed = 0.0
 
 
 class ServoDriver:
@@ -175,6 +181,8 @@ class DistanceSensor:
 
 if __name__ == "__main__":
     try:
-        print("")
+        while 1:
+            car = PiCar()
+            car.motorDriver.accelerate(rate=5,perSec=1,speedFrom=0,speedTo=100)
     except KeyboardInterrupt:
         print("Program Stopped via keyboard interrupt")
