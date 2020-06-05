@@ -29,16 +29,16 @@ from time import sleep
 from enum import Enum
 
 
-
 class PiCar:
     def __init__(self):
         self.motorDriver = HBridgeMotorDriver(in1=5, in2=6, enable=13)
+
 
 class HBridgeMotorDriver:
     def __init__(self, in1, in2, enable):
         self.in1 = in1
         self.in2 = in2
-        #self.enable = enable  # this gpio is pwm
+        # self.enable = enable  # this gpio is pwm
         self.pwmEnable = PWMOutputDevice(enable, frequency=100)
         self.motor = Motor(forward=in1, backward=in2)
         self.pwmEnable.on()
@@ -132,7 +132,6 @@ class HBridgeMotorDriver:
                 break
             sleep(perSec)
 
-
     def forward(self, pwmDutyCycle: float = 1.0):
         self.motor.forward()
         self.pwmEnable.value = pwmDutyCycle
@@ -144,19 +143,16 @@ class HBridgeMotorDriver:
         self.pwmEnable.value = pwmDutyCycle
         self.currSpeed = 100
 
-
     def halt(self):
         self.pwmEnable.off()
         self.currSpeed = 0.0
-
-
 
 
 if __name__ == "__main__":
     car = PiCar()
     try:
         while 1:
-            car.motorDriver.accelerate(rate=5,perSec=1,speedFrom=0,speedTo=100)
+            car.motorDriver.accelerate(rate=5, perSec=1, speedFrom=0, speedTo=100)
     except KeyboardInterrupt:
         print("Program Stopped via keyboard interrupt")
-	car.motorDriver.halt()
+        car.motorDriver.halt()
