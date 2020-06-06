@@ -137,7 +137,6 @@ class HBridgeMotorDriver:
             currRate = 100 - r
             dutyCycle = currRate / 100
            # self.pwmEnable.value = dutyCycle
-
             self.currSpeed = currRate / perSec
             print("Current Speed: {} unit/sec".format(self.currSpeed))
             if self.currSpeed <= speedTo:
