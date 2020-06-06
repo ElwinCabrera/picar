@@ -24,9 +24,8 @@ VCC -> Board Pin 17 (3.3v)
 GND -> Board Pin 20
 """
 
-from gpiozero import Motor, PWMOutputDevice
+from gpiozero import Motor
 from time import sleep
-from enum import Enum
 
 
 class PiCar:
@@ -38,14 +37,10 @@ class HBridgeMotorDriver:
     def __init__(self, in1, in2, enable):
         self.in1 = in1
         self.in2 = in2
-        # self.enable = enable  # this gpio is pwm
-        self.pwmEnable = PWMOutputDevice(enable, frequency=50000)
-        self.motor = Motor(forward=in2, backward=in1)
-        self.pwmEnable.on()
+        self.enable = enable  # this gpio is pwm
+        self.motor = Motor(forward=in2, backward=in1, enable=self.enable)
         self.currSpeed = 0.0
         self.coldStartMinSpeed = 60
-        self.pwmEnable.value = 0.0
-        self.motor.forward()
 
     # def start(self, startPWMDutyCycle: float = 1.0):
     #     self.pwmEnable.on()
@@ -57,12 +52,10 @@ class HBridgeMotorDriver:
 
     def slowStart(self, accelRate: int = 1, perSec: float = 1, speedFrom: float = 0):
         self.accelerate(rate=accelRate, perSec=perSec, speedFrom=speedFrom)
-        self.pwmEnable.value = 1.0
         self.currSpeed = 100
 
     def slowStop(self, decelRate: int = 1, perSec: float = 1, speedFrom: float = 100):
         self.decelerate(rate=decelRate, perSec=perSec, speedFrom=speedFrom)
-        self.pwmEnable.value = 0.0
         self.currSpeed = 0.0
         # self.pwmEnable.off()
 
@@ -89,24 +82,24 @@ class HBridgeMotorDriver:
         if rate > 100:
             rate = 100
 
-       # self.forward(1.0)
-        #sleep(0.5)
+        # self.forward(1.0)
+        # sleep(0.5)
 
-#        if speedFrom < self.coldStartMinSpeed:
-#            speedFrom = self.coldStartMinSpeed
-#            print("starting from {}".format(self.coldStartMinSpeed))
-#            #self.pwmEnable.value = float(self.coldStartMinSpeed/100)
-#            self.forward(float(self.coldStartMinSpeed/100))
-#            sleep(2)
-#        else:
-#            #self.pwmEnable.value = float(self.speedFrom)
-#            print("starting from {}".format(speedFrom))
-#            self.forward(float(speedFrom))
+        #        if speedFrom < self.coldStartMinSpeed:
+        #            speedFrom = self.coldStartMinSpeed
+        #            print("starting from {}".format(self.coldStartMinSpeed))
+        #            #self.pwmEnable.value = float(self.coldStartMinSpeed/100)
+        #            self.forward(float(self.coldStartMinSpeed/100))
+        #            sleep(2)
+        #        else:
+        #            #self.pwmEnable.value = float(self.speedFrom)
+        #            print("starting from {}".format(speedFrom))
+        #            self.forward(float(speedFrom))
 
         print("Accelerating at a rate of {} unit/sec".format(rate))
-        for currRate in range(int(speedFrom), int(speedTo)+1, rate):
+        for currRate in range(int(speedFrom), int(speedTo) + 1, rate):
             dutyCycle = currRate / speedTo
-            #self.pwmEnable.value = float(dutyCycle)
+            # self.pwmEnable.value = float(dutyCycle)
             self.forward(float(dutyCycle))
             self.currSpeed = currRate / perSec
             print("Current Speed: {} unit/sec".format(self.currSpeed))
@@ -116,7 +109,6 @@ class HBridgeMotorDriver:
                 sleep(3)
                 break
             sleep(perSec)
-            
 
     def decelerate(self, rate: int = 1, perSec: float = 1, speedFrom: float = 100, speedTo: float = 0):
 
@@ -144,8 +136,8 @@ class HBridgeMotorDriver:
         for r in range(0, 101, rate):
             currRate = 100 - r
             dutyCycle = currRate / 100
-            self.pwmEnable.value = dutyCycle
-    
+           # self.pwmEnable.value = dutyCycle
+
             self.currSpeed = currRate / perSec
             print("Current Speed: {} unit/sec".format(self.currSpeed))
             if self.currSpeed <= speedTo:
@@ -154,28 +146,35 @@ class HBridgeMotorDriver:
             sleep(perSec)
 
     def forward(self, pwmDutyCycle: float = 1.0):
-        self.pwmEnable.value = pwmDutyCycle
-        self.motor.forward(1.0)
-        #self.currSpeed = 100
+        #self.pwmEnable.value = pwmDutyCycle
+        self.motor.forward(pwmDutyCycle)
+        # self.currSpeed = 100
 
     def backward(self, pwmDutyCycle: float = 1.0):
         # self.motor.backward(pwmDutyCycle)
-        self.motor.backward()
-        self.pwmEnable.value = pwmDutyCycle
-        #self.currSpeed = 100
+        self.motor.backward(pwmDutyCycle)
+        # self.currSpeed = 100
 
     def halt(self):
-        self.pwmEnable.off()
+        self.motor.stop()
         self.currSpeed = 0.0
+
+    def testing(self, duty: float = 1.0):
+        print("Begin test")
+        self.motor.forward(duty)
+        #self.motor.value = duty
+        print("sleepint for 3s")
+        sleep(3)
+        print("revrsing direction")
+        self.motor.reverse()
+        sleep(3)
 
 
 if __name__ == "__main__":
     car = PiCar()
     try:
         while 1:
-            car.motorDriver.forward(1.0)
-            #car.motorDriver.accelerate(rate=5, perSec=1, speedFrom=0, speedTo=100)
-            #car.motorDriver.decelerate(rate=10, perSec=2, speedFrom=car.motorDriver.currSpeed, speedTo=0)
+            car.motorDriver.testing(1.0)
     except KeyboardInterrupt:
         print("Program Stopped via keyboard interrupt")
         car.motorDriver.halt()
