@@ -24,9 +24,8 @@ VCC -> Board Pin 17 (3.3v)
 GND -> Board Pin 20
 """
 
-from gpiozero import Motor, PWMOutputDevice
+from gpiozero import Motor, PWMOutputDevice, PhaseEnableMotor
 from time import sleep
-from enum import Enum
 
 
 class PiCar:
@@ -38,9 +37,9 @@ class HBridgeMotorDriver:
     def __init__(self, in1, in2, enable):
         self.in1 = in1
         self.in2 = in2
-        # self.enable = enable  # this gpio is pwm
-        self.pwmEnable = PWMOutputDevice(enable, frequency=50000)
-        self.motor = Motor(forward=in2, backward=in1)
+        self.enable = enable  # this gpio is pwm
+        # self.pwmEnable = PWMOutputDevice(enable, frequency=50000)
+        self.motor = Motor(forward=in2, backward=in1, enable=self.enable)
         self.pwmEnable.on()
         self.currSpeed = 0.0
         self.coldStartMinSpeed = 60
@@ -89,24 +88,24 @@ class HBridgeMotorDriver:
         if rate > 100:
             rate = 100
 
-       # self.forward(1.0)
-        #sleep(0.5)
+        # self.forward(1.0)
+        # sleep(0.5)
 
-#        if speedFrom < self.coldStartMinSpeed:
-#            speedFrom = self.coldStartMinSpeed
-#            print("starting from {}".format(self.coldStartMinSpeed))
-#            #self.pwmEnable.value = float(self.coldStartMinSpeed/100)
-#            self.forward(float(self.coldStartMinSpeed/100))
-#            sleep(2)
-#        else:
-#            #self.pwmEnable.value = float(self.speedFrom)
-#            print("starting from {}".format(speedFrom))
-#            self.forward(float(speedFrom))
+        #        if speedFrom < self.coldStartMinSpeed:
+        #            speedFrom = self.coldStartMinSpeed
+        #            print("starting from {}".format(self.coldStartMinSpeed))
+        #            #self.pwmEnable.value = float(self.coldStartMinSpeed/100)
+        #            self.forward(float(self.coldStartMinSpeed/100))
+        #            sleep(2)
+        #        else:
+        #            #self.pwmEnable.value = float(self.speedFrom)
+        #            print("starting from {}".format(speedFrom))
+        #            self.forward(float(speedFrom))
 
         print("Accelerating at a rate of {} unit/sec".format(rate))
-        for currRate in range(int(speedFrom), int(speedTo)+1, rate):
+        for currRate in range(int(speedFrom), int(speedTo) + 1, rate):
             dutyCycle = currRate / speedTo
-            #self.pwmEnable.value = float(dutyCycle)
+            # self.pwmEnable.value = float(dutyCycle)
             self.forward(float(dutyCycle))
             self.currSpeed = currRate / perSec
             print("Current Speed: {} unit/sec".format(self.currSpeed))
@@ -116,7 +115,6 @@ class HBridgeMotorDriver:
                 sleep(3)
                 break
             sleep(perSec)
-            
 
     def decelerate(self, rate: int = 1, perSec: float = 1, speedFrom: float = 100, speedTo: float = 0):
 
@@ -145,7 +143,7 @@ class HBridgeMotorDriver:
             currRate = 100 - r
             dutyCycle = currRate / 100
             self.pwmEnable.value = dutyCycle
-    
+
             self.currSpeed = currRate / perSec
             print("Current Speed: {} unit/sec".format(self.currSpeed))
             if self.currSpeed <= speedTo:
@@ -154,15 +152,15 @@ class HBridgeMotorDriver:
             sleep(perSec)
 
     def forward(self, pwmDutyCycle: float = 1.0):
-        self.pwmEnable.value = pwmDutyCycle
-        self.motor.forward(1.0)
-        #self.currSpeed = 100
+        #self.pwmEnable.value = pwmDutyCycle
+        self.motor.forward(pwmDutyCycle)
+        # self.currSpeed = 100
 
     def backward(self, pwmDutyCycle: float = 1.0):
         # self.motor.backward(pwmDutyCycle)
         self.motor.backward()
         self.pwmEnable.value = pwmDutyCycle
-        #self.currSpeed = 100
+        # self.currSpeed = 100
 
     def halt(self):
         self.pwmEnable.off()
@@ -174,8 +172,8 @@ if __name__ == "__main__":
     try:
         while 1:
             car.motorDriver.forward(1.0)
-            #car.motorDriver.accelerate(rate=5, perSec=1, speedFrom=0, speedTo=100)
-            #car.motorDriver.decelerate(rate=10, perSec=2, speedFrom=car.motorDriver.currSpeed, speedTo=0)
+            # car.motorDriver.accelerate(rate=5, perSec=1, speedFrom=0, speedTo=100)
+            # car.motorDriver.decelerate(rate=10, perSec=2, speedFrom=car.motorDriver.currSpeed, speedTo=0)
     except KeyboardInterrupt:
         print("Program Stopped via keyboard interrupt")
         car.motorDriver.halt()
