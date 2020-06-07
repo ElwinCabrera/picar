@@ -26,18 +26,6 @@ GND -> Board Pin 20
 
 from adafruit_servokit import ServoKit
 from time import sleep
-from enum import Enum
-
-
-class ServoCh(Enum):
-    STEERING = 0
-    CAM_PAN = 1
-    CAM_TILT = 2
-
-    TRIGHT_HYDR = 4
-    TLEFT_HYDR = 5
-    BRIGHT_HYDR = 6
-    BLEFT_HYDR = 7
 
 
 class PiCar:
@@ -55,7 +43,7 @@ class ServoDriver:
         self.kit = ServoKit(channels=16)
 
     def moveStearing(self, deg: int):
-        pass
+        self.kit.servo[2].angle = deg
 
     def moveCameraPan(self, deg: int):
         pass
@@ -79,9 +67,14 @@ class ServoDriver:
         pass
 
 
-
 if __name__ == "__main__":
+    car = PiCar()
     try:
-        print("")
+        while 1:
+            #car.motorDriver.testing(1.0)
+            for d in range(0, 181, 5):
+                car.servoDiver.moveStearing(d)
+
     except KeyboardInterrupt:
         print("Program Stopped via keyboard interrupt")
+        #car.motorDriver.halt()
